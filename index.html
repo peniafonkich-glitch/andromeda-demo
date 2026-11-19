@@ -173,6 +173,14 @@ h2{font:900 clamp(36px,5.4vw,66px)/1 var(--bd);letter-spacing:-.02em}
 @keyframes stamp{to{transform:scale(1) rotate(-12deg);opacity:1}}
 .card .ft{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-top:18px;position:relative}
 .card .ft p{font-size:14px;color:var(--mute)}
+.how{list-style:none;margin-top:18px;display:grid;gap:10px;max-width:44ch}
+.how li{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;color:#dfe5ff}
+.how b{width:30px;height:30px;border-radius:50%;background:var(--cyan);color:var(--ink);display:grid;place-items:center;font-weight:900}
+.qr{width:74px;height:74px;flex:none;display:grid;grid-template-columns:repeat(9,1fr);gap:1px;padding:5px;background:#fff;border:2px solid var(--ink);border-radius:8px}
+.qr i{background:var(--ink);border-radius:1px}
+.qr i.o{background:transparent}
+.scan{position:absolute;left:0;right:0;height:3px;background:var(--cyan);box-shadow:0 0 12px var(--cyan);top:0;animation:scan .7s ease-in-out}
+@keyframes scan{to{top:100%}}
 .prize{display:none;margin-top:14px;text-align:center;font:900 22px var(--bd);color:var(--orange);position:relative}
 .prize.on{display:block;animation:slidein .4s}
 
@@ -264,13 +272,19 @@ footer a{color:#fff}
     <div class="rv">
       <span class="kick" style="background:var(--pink);color:#fff">Dla stałych gości</span>
       <h2 style="margin-top:12px">Zbieraj pieczątki, odbieraj nagrody</h2>
-      <p class="s">Kartonik w kieszeni gubi się szybko. Na stronie karta jest zawsze pod ręką w telefonie. Kliknij i przybij pieczątkę:</p>
+      <p class="s">Kartonik w kieszeni gubi się szybko. Na stronie karta jest zawsze pod ręką w telefonie.</p>
+      <ol class="how">
+        <li><b>1</b>Pokazujesz przy kasie swój kod z telefonu.</li>
+        <li><b>2</b>Obsługa skanuje kod: 1 pieczątka za 1 paragon. Sam jej sobie nie dodasz.</li>
+        <li><b>3</b>Przy 10 pieczątkach kasa od razu widzi nagrodę.</li>
+      </ol>
     </div>
     <div class="card rv" id="card">
       <div class="hd"><span>Andromeda</span><small>Karta stałego gościa</small></div>
       <div class="dots" id="dots"></div>
       <div class="prize" id="prize">Nagroda czeka przy kasie!</div>
-      <div class="ft"><p id="left">Jeszcze 10 pieczątek do nagrody</p><button class="btn d" id="stampBtn" type="button">Przybij pieczątkę</button></div>
+      <div class="ft"><div class="qr" aria-hidden="true" id="qr"></div><div style="flex:1;min-width:150px"><p id="left">Jeszcze 10 pieczątek do nagrody</p><p style="font-size:12px">Twój kod: <b>AND-4821</b></p></div></div>
+      <div class="ft" style="border-top:2px dashed var(--line);padding-top:14px"><p style="font-size:13px"><b style="color:var(--ink)">Pokaz:</b> tak wygląda skan przy kasie</p><button class="btn d" id="stampBtn" type="button">Kasa: skanuj paragon</button></div>
     </div>
   </div>
 </section>
@@ -372,10 +386,14 @@ document.getElementById('run').innerHTML=h+h.replace(/alt="[^"]*"/g,'alt=""');
 /* --- pieczątki --- */
 var dots=document.getElementById('dots'),n=0,TOT=10;
 for(var i=1;i<=TOT;i++){var d=document.createElement('div');d.className='dot'+(i===TOT?' last':'');d.innerHTML=(i===TOT?'★':i)+'<i>A</i>';dots.appendChild(d)}
-document.getElementById('stampBtn').onclick=function(){
-  if(n>=TOT){n=0;dots.querySelectorAll('.dot').forEach(function(d){d.classList.remove('on')});document.getElementById('prize').classList.remove('on');this.textContent='Przybij pieczątkę'}
-  else{dots.children[n].classList.add('on');n++;if(n===TOT){document.getElementById('prize').classList.add('on');this.textContent='Nowa karta'}}
-  document.getElementById('left').textContent=n>=TOT?'Karta pełna':'Jeszcze '+(TOT-n)+' '+((TOT-n)===1?'pieczątka':(TOT-n)<5?'pieczątki':'pieczątek')+' do nagrody'};
+(function(){var q=document.getElementById('qr'),h='',s=4821;for(var i=0;i<81;i++){s=(s*16807)%2147483647;var r=Math.floor(i/9),c=i%9,f=(r<3&&c<3)||(r<3&&c>5)||(r>5&&c<3);var on=f?!(r%2===1&&c%2===1&&(r===1||r===7)&&(c===1||c===7)):s%2;h+='<i'+(on?'':' class="o"')+'></i>'}q.innerHTML=h})();
+var card=document.getElementById('card'),busy=false;
+document.getElementById('stampBtn').onclick=function(){if(busy)return;busy=true;var btn=this;
+  var sc=document.createElement('div');sc.className='scan';card.appendChild(sc);setTimeout(function(){sc.remove();busy=false;doStamp(btn)},reduce?0:700)};
+function doStamp(btn){
+  if(n>=TOT){n=0;dots.querySelectorAll('.dot').forEach(function(d){d.classList.remove('on')});document.getElementById('prize').classList.remove('on');btn.textContent='Kasa: skanuj paragon'}
+  else{dots.children[n].classList.add('on');n++;if(n===TOT){document.getElementById('prize').classList.add('on');btn.textContent='Kasa: wydaj nagrodę'}}
+  document.getElementById('left').textContent=n>=TOT?'Karta pełna':'Jeszcze '+(TOT-n)+' '+((TOT-n)===1?'pieczątka':(TOT-n)<5?'pieczątki':'pieczątek')+' do nagrody'}
 
 /* pojawianie */
 var els=document.querySelectorAll('.rv,.board');
